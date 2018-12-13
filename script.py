@@ -14,11 +14,13 @@ limit = 1000
 magnetList = []
 titleList = []
 origin = 'https://www.dytt8.net'
+isDone = 0
 
 def getMagnet(url):
 	global titleList
 	global magnetList
 	global num
+	global isDone
 	
 	html2=eq.urlopen(url).read().decode('gbk')
 	html2=str(html2)
@@ -27,7 +29,17 @@ def getMagnet(url):
 	title=re.compile(pat3).findall(html2)
 	magnet = re.compile(pat2).findall(html2)
 	
+	isHave = False
+	
 	if len(magnet) > 0:
+		isDone += 1
+	
+	try:
+		isHave = magnetList.index(magnet[0]) >= 0
+	except:
+		isHave = False
+		
+	if len(magnet) > 0 and isHave == False:
 		magnetList += [magnet[0]]
 		if len(title) > 0:
 			titleList += [title[0]]
@@ -56,13 +68,14 @@ def forEach(pageList):
 	global page
 	global origin
 	global magnetList
+	global isDone
 	
-	len1 = len(magnetList)
-
+	isDone = 0
+	
 	for link in pageList:
 		getMagnet(origin + link)
 
-	if len(magnetList) == len1:
+	if isDone == 0:
 		createHtmlFile()
 		print('爬取完毕！')
 	else:
@@ -82,10 +95,10 @@ def createHtmlFile():
 	for magnet in magnetList:
 		index = magnetList.index(magnet)
 		title = titleList[index]
-		if(index+1)%20 == 0:
+		if (index+1)%20 == 0:
 			message = message + '<li>-------------------------------------------</li>'
-		else:
-			message = message + '<li><a href="' + magnet + '">'+ title +'</a></li>'
+			
+		message = message + '<li><a href="' + magnet + '">'+ title +'</a></li>'
 		
 		
 	f = open('index.html', 'w+')
